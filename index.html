@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎲 학급 자리 뽑기 (ClassSeat Picker)</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Libraries (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+  <!-- Background gradients -->
+  <div class="bg-gradient-orb orb-1"></div>
+  <div class="bg-gradient-orb orb-2"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <i class="fa-solid fa-dice-d20 logo-icon"></i>
+        <h1>학급 자리 뽑기 <span>ClassSeat Picker</span></h1>
+      </div>
+      <div class="header-controls">
+        <button id="btn-theme-toggle" class="btn-icon" title="테마 변경">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <button id="btn-sound-toggle" class="btn-icon" title="효과음 켜기/끄기">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+      
+      <!-- Stepper / Progress Indicator -->
+      <div class="stepper-container">
+        <div class="step-indicator active" data-step="1">
+          <span class="step-num">1</span>
+          <span class="step-label">명렬 입력</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-indicator" data-step="2">
+          <span class="step-num">2</span>
+          <span class="step-label">좌석 설정</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step-indicator" data-step="3">
+          <span class="step-num">3</span>
+          <span class="step-label">자리 뽑기</span>
+        </div>
+      </div>
+
+      <!-- Step Sections -->
+      <div class="sections-wrapper">
+        
+        <!-- SECTION 1: Roster Entry -->
+        <section id="section-roster" class="step-section active">
+          <div class="section-card">
+            <div class="card-header">
+              <h2><i class="fa-solid fa-users"></i> 학생 명렬 관리</h2>
+              <p>학생들의 이름을 직접 등록하거나 한 번에 복사해서 붙여넣으세요.</p>
+            </div>
+            <div class="card-body roster-grid">
+              
+              <!-- Direct Input & Copy Paste -->
+              <div class="roster-inputs">
+                <div class="input-group">
+                  <label for="roster-single-input">학생 개별 등록</label>
+                  <div class="input-with-action">
+                    <input type="text" id="roster-single-input" placeholder="이름 입력 (예: 홍길동)" maxlength="10">
+                    <button id="btn-add-student" class="btn-primary"><i class="fa-solid fa-user-plus"></i> 추가</button>
+                  </div>
+                </div>
+
+                <div class="input-group">
+                  <label for="roster-bulk-input">이름 목록 붙여넣기</label>
+                  <textarea id="roster-bulk-input" rows="6" placeholder="이름을 줄바꿈(Enter)이나 쉼표(,)로 구분해서 입력해주세요.&#10;예)&#10;김민준&#10;이서연&#10;박지호"></textarea>
+                  <button id="btn-import-bulk" class="btn-secondary"><i class="fa-solid fa-file-import"></i> 일괄 추가</button>
+                </div>
+              </div>
+
+              <!-- Student List Output -->
+              <div class="roster-list-container">
+                <div class="list-header">
+                  <h3>등록된 학생 목록 (<span id="student-count">0</span>명)</h3>
+                  <button id="btn-clear-roster" class="btn-text-danger"><i class="fa-solid fa-trash-can"></i> 전체 삭제</button>
+                </div>
+                <div id="student-badges" class="badges-grid">
+                  <!-- Badges will be generated via JavaScript -->
+                  <div class="empty-list-placeholder">
+                    <i class="fa-solid fa-user-slash"></i>
+                    <p>등록된 학생이 없습니다. 이름을 추가해주세요.</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            
+            <div class="card-footer">
+              <button class="btn-next btn-primary" data-next-step="2">다음 단계 (좌석 설정) <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: Seat Settings -->
+        <section id="section-seats" class="step-section">
+          <div class="section-card">
+            <div class="card-header">
+              <h2><i class="fa-solid fa-grid-horizontal"></i> 교실 좌석 설정</h2>
+              <p>교실 배치에 맞게 행과 열을 설정하고, 빈자리나 교탁 등 사용하지 않는 좌석을 클릭하여 비활성화하세요.</p>
+            </div>
+            <div class="card-body seat-setting-body">
+              
+              <!-- Seat layout controls -->
+              <div class="seat-controls">
+                <div class="control-row">
+                  <div class="input-group-inline">
+                    <label for="input-rows">가로 줄 (행)</label>
+                    <input type="number" id="input-rows" min="1" max="15" value="6">
+                  </div>
+                  <div class="input-group-inline">
+                    <label for="input-cols">세로 열 (열)</label>
+                    <input type="number" id="input-cols" min="1" max="15" value="5">
+                  </div>
+                  <button id="btn-apply-grid" class="btn-secondary"><i class="fa-solid fa-arrows-rotate"></i> 격자 재구성</button>
+                </div>
+                
+                <div class="seat-stats">
+                  <span class="stat-item"><i class="fa-solid fa-chair"></i> 전체 좌석: <strong id="total-seats-count">30</strong>개</span>
+                  <span class="stat-item"><i class="fa-solid fa-user-check"></i> 학생 수: <strong id="roster-count-stat">0</strong>명</span>
+                  <span class="stat-item"><i class="fa-solid fa-ban"></i> 비활성 좌석: <strong id="disabled-seats-count">0</strong>개</span>
+                  <span class="stat-item active-seats"><i class="fa-solid fa-check"></i> 사용 좌석: <strong id="active-seats-count">30</strong>개</span>
+                </div>
+
+                <div id="seat-warning-msg" class="warning-alert-box hide">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <span>사용 가능한 좌석 수(<span id="warn-active-seats">0</span>)가 학생 수(<span id="warn-students">0</span>)보다 적습니다. 좌석을 더 늘리거나 학생 수를 조정해주세요!</span>
+                </div>
+              </div>
+
+              <!-- Seat Preview Grid -->
+              <div class="seat-grid-container">
+                <div class="teacher-desk">
+                  <span>교탁 (앞쪽)</span>
+                </div>
+                <div id="seat-setup-grid" class="seat-grid">
+                  <!-- Grid cells generated via JS -->
+                </div>
+              </div>
+
+            </div>
+            
+            <div class="card-footer flex-between">
+              <button class="btn-prev btn-secondary" data-prev-step="1"><i class="fa-solid fa-arrow-left"></i> 이전 단계</button>
+              <button id="btn-go-to-draw" class="btn-next btn-primary" data-next-step="3">다음 단계 (뽑기 진행) <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: Seat Drawing & Results -->
+        <section id="section-draw" class="step-section">
+          <div class="section-card">
+            <div class="card-header">
+              <h2><i class="fa-solid fa-dice"></i> 자리 뽑기 & 결과</h2>
+              <p>원하는 뽑기 모드를 선택하여 교실 자리를 배치하세요.</p>
+            </div>
+            <div class="card-body">
+              
+              <!-- Draw Modes Tabs -->
+              <div class="draw-modes">
+                <button class="mode-tab active" data-mode="random">
+                  <i class="fa-solid fa-shuffle"></i>
+                  <div class="mode-info">
+                    <span class="mode-title">랜덤 배치</span>
+                    <span class="mode-desc">한 번에 전체 무작위 배치</span>
+                  </div>
+                </button>
+                <button class="mode-tab" data-mode="roulette">
+                  <i class="fa-solid fa-spinner"></i>
+                  <div class="mode-info">
+                    <span class="mode-title">룰렛 뽑기</span>
+                    <span class="mode-desc">자리를 지정하여 1명씩 뽑기</span>
+                  </div>
+                </button>
+                <button class="mode-tab" data-mode="card">
+                  <i class="fa-solid fa-clone"></i>
+                  <div class="mode-info">
+                    <span class="mode-title">카드 뒤집기</span>
+                    <span class="mode-desc">카드를 클릭해 한 명씩 오픈</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Draw Mode Controls -->
+              <div class="mode-control-panel">
+                <div id="panel-random" class="mode-panel active">
+                  <button id="btn-draw-random" class="btn-accent btn-large"><i class="fa-solid fa-shuffle"></i> 무작위 배치 시작!</button>
+                </div>
+                <div id="panel-roulette" class="mode-panel">
+                  <div class="instructions-box">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>배치판에서 <strong>빈 좌석</strong>을 클릭하면 룰렛이 돌아가며 남은 학생 중 한 명이 배정됩니다.</span>
+                  </div>
+                  <button id="btn-draw-roulette-auto" class="btn-accent"><i class="fa-solid fa-play"></i> 남은 자리 자동 순차 룰렛</button>
+                </div>
+                <div id="panel-card" class="mode-panel">
+                  <div class="instructions-box">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>모든 좌석에 카드가 배치됩니다. 카드를 클릭하면 뒤집히면서 배정된 학생이 공개됩니다.</span>
+                  </div>
+                  <div class="card-actions">
+                    <button id="btn-draw-card-setup" class="btn-accent"><i class="fa-solid fa-id-card"></i> 카드 섞어서 깔기</button>
+                    <button id="btn-draw-card-reveal-all" class="btn-secondary hide"><i class="fa-solid fa-eye"></i> 카드 전체 뒤집기</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Result Layout (Target of Image Export) -->
+              <div class="result-board-wrapper">
+                <div id="result-board" class="result-board">
+                  <div class="teacher-desk">
+                    <span>교탁 (앞쪽)</span>
+                  </div>
+                  <!-- The main interactive seat grid for results -->
+                  <div id="seat-result-grid" class="seat-grid">
+                    <div class="empty-grid-placeholder">
+                      <p>뽑기를 진행하면 자리가 배치됩니다.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Export Controls -->
+              <div class="export-controls hide" id="export-controls">
+                <button id="btn-export-image" class="btn-secondary"><i class="fa-solid fa-image"></i> 이미지(PNG)로 저장</button>
+                <button id="btn-copy-clipboard" class="btn-secondary"><i class="fa-solid fa-clipboard-list"></i> 텍스트 복사</button>
+                <button id="btn-print" class="btn-secondary"><i class="fa-solid fa-print"></i> 인쇄하기</button>
+              </div>
+
+            </div>
+            
+            <div class="card-footer flex-between">
+              <button class="btn-prev btn-secondary" data-prev-step="2"><i class="fa-solid fa-arrow-left"></i> 이전 단계</button>
+              <button id="btn-reset-drawing" class="btn-danger"><i class="fa-solid fa-arrows-rotate"></i> 뽑기 초기화</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>&copy; 2026 ClassSeat Picker. Created with Passion.</p>
+    </footer>
+  </div>
+
+  <!-- Roster/Setting Sync Alert Modal -->
+  <div id="modal-confirm" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> 경고</h3>
+        <button class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-confirm-msg">자리를 새로 배치하면 기존 배치 결과가 유실됩니다. 계속하시겠습니까?</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-cancel" class="btn-secondary">취소</button>
+        <button id="btn-modal-ok" class="btn-danger">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Roulette Wheel Spinner Overlay -->
+  <div id="roulette-overlay" class="modal-backdrop">
+    <div class="roulette-spin-container">
+      <div class="roulette-header">
+        <h3><i class="fa-solid fa-spinner fa-spin"></i> 룰렛 자리 선정 중...</h3>
+      </div>
+      <div class="roulette-wheel">
+        <div id="roulette-names-wrapper" class="roulette-names">
+          <!-- Scrolling names via JS -->
+        </div>
+        <div class="roulette-pointer"></div>
+      </div>
+      <div class="roulette-footer">
+        <span id="roulette-target-seat-label">좌석: [1-1]</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vanilla JS Application -->
+  <script src="app.js"></script>
+</body>
+</html>
